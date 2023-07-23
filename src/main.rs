@@ -2,6 +2,8 @@ use std::fmt;
 use std::io::Read;
 use std::time::Instant;
 
+mod day1;
+
 #[derive(Eq, PartialEq)]
 pub enum Part {
     One,
@@ -41,7 +43,7 @@ fn run(day: usize) {
             print!("Day {:02}, part {}:  ", day, part);
             let t0 = Instant::now();
             let result = match day {
-                // 1 => day1::run(&input, part),
+                1 => day1::run(&input, part),
                 _ => "Not implemented".to_string(),
             };
             println!(
