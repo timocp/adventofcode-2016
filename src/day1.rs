@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 use crate::Part;
 
 pub fn run(input: &str, part: Part) -> String {
@@ -6,7 +8,7 @@ pub fn run(input: &str, part: Part) -> String {
         "{}",
         match part {
             Part::One => part1(&input),
-            Part::Two => 0,
+            Part::Two => part2(&input),
         }
     )
 }
@@ -14,9 +16,26 @@ pub fn run(input: &str, part: Part) -> String {
 fn part1(input: &[Instruction]) -> u32 {
     let mut state = State::new();
     for instruction in input {
-        state.perform(instruction);
+        state.turn(instruction.turn);
+        state.walk(instruction.walk);
     }
-    state.position.0.abs() as u32 + state.position.1.abs() as u32
+    state.distance_from_origin()
+}
+
+fn part2(input: &[Instruction]) -> u32 {
+    let mut state = State::new();
+    let mut visited: HashSet<(i32, i32)> = HashSet::new();
+    for instruction in input {
+        state.turn(instruction.turn);
+        for _ in 0..instruction.walk {
+            state.walk(1);
+            if visited.contains(&state.position) {
+                return state.distance_from_origin();
+            }
+            visited.insert(state.position);
+        }
+    }
+    panic!("Didn't visit any location twice")
 }
 
 #[derive(Clone, Copy)]
@@ -59,14 +78,21 @@ impl State {
         }
     }
 
-    fn perform(&mut self, instruction: &Instruction) {
-        self.direction = self.direction.turn(instruction.turn);
+    fn turn(&mut self, turn: Turn) {
+        self.direction = self.direction.turn(turn);
+    }
+
+    fn walk(&mut self, walk: u32) {
         match self.direction {
-            Direction::North => self.position.1 += instruction.walk as i32,
-            Direction::East => self.position.0 += instruction.walk as i32,
-            Direction::South => self.position.1 -= instruction.walk as i32,
-            Direction::West => self.position.0 -= instruction.walk as i32,
+            Direction::North => self.position.1 += walk as i32,
+            Direction::East => self.position.0 += walk as i32,
+            Direction::South => self.position.1 -= walk as i32,
+            Direction::West => self.position.0 -= walk as i32,
         };
+    }
+
+    fn distance_from_origin(&self) -> u32 {
+        self.position.0.unsigned_abs() + self.position.1.unsigned_abs()
     }
 }
 
@@ -101,4 +127,6 @@ fn test() {
     assert_eq!(5, part1(&parse_input("R2, L3")));
     assert_eq!(2, part1(&parse_input("R2, R2, R2")));
     assert_eq!(12, part1(&parse_input("R5, L5, R5, R3")));
+
+    assert_eq!(4, part2(&parse_input("R8, R4, R4, R8")));
 }
