@@ -1,8 +1,5 @@
 use crate::Part;
 
-use once_cell::sync::Lazy;
-use regex::Regex;
-
 pub fn run(input: &str, part: Part) -> String {
     let rooms = parse_input(input);
     format!(
@@ -66,12 +63,13 @@ impl Room {
 
 impl From<&str> for Room {
     fn from(s: &str) -> Self {
-        let re: Lazy<Regex> = Lazy::new(|| Regex::new(r"([a-z-]+)-(\d+)\[([a-z]+)\]").unwrap());
-        let cap = re.captures(s).unwrap();
+        let dash = s.rfind('-').unwrap();
+        let bracket1 = s.rfind('[').unwrap();
+        let bracket2 = s.rfind(']').unwrap();
         Self {
-            name: cap[1].to_string(),
-            sector_id: cap[2].parse().unwrap(),
-            checksum: cap[3].to_string(),
+            name: s[..dash].to_string(),
+            sector_id: s[dash + 1..bracket1].parse().unwrap(),
+            checksum: s[bracket1 + 1..bracket2].to_string(),
         }
     }
 }
