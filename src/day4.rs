@@ -1,5 +1,6 @@
 use crate::Part;
 
+use once_cell::sync::Lazy;
 use regex::Regex;
 
 pub fn run(input: &str, part: Part) -> String {
@@ -65,7 +66,7 @@ impl Room {
 
 impl From<&str> for Room {
     fn from(s: &str) -> Self {
-        let re: Regex = Regex::new(r"([a-z-]+)-(\d+)\[([a-z]+)\]").unwrap();
+        let re: Lazy<Regex> = Lazy::new(|| Regex::new(r"([a-z-]+)-(\d+)\[([a-z]+)\]").unwrap());
         let cap = re.captures(s).unwrap();
         Self {
             name: cap[1].to_string(),
