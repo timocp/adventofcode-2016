@@ -6,7 +6,7 @@ pub fn run(input: &str, part: Part) -> String {
         "{}",
         match part {
             Part::One => part1(&rooms),
-            Part::Two => 0,
+            Part::Two => part2(&rooms),
         }
     )
 }
@@ -24,8 +24,18 @@ fn part1(input: &[Room]) -> u32 {
         .sum()
 }
 
+// sector ID of the room where north pole objects are stored
+fn part2(input: &[Room]) -> u32 {
+    input
+        .iter()
+        .filter(|room| room.is_real())
+        .find(|room| room.name() == "northpole object storage")
+        .unwrap()
+        .sector_id
+}
+
 struct Room {
-    name: String,
+    encrypted_name: String,
     sector_id: u32,
     checksum: String,
 }
@@ -37,9 +47,9 @@ impl Room {
 
     fn calc_checksum(&self) -> String {
         let mut counts = self
-            .name
+            .encrypted_name
             .chars()
-            .filter(|&c| c != '-')
+            .filter(|&c| c >= 'a' && c <= 'z')
             .fold([0; 26], |mut counts, c| {
                 counts[c as usize - 'a' as usize] += 1;
                 counts
@@ -59,6 +69,19 @@ impl Room {
         }
         cs
     }
+
+    fn name(&self) -> String {
+        self.encrypted_name
+            .chars()
+            .map(|c| match c {
+                '-' => ' ',
+                'a'..='z' => {
+                    char::from_u32((((c as u32) - 97 + self.sector_id) % 26) + 97).unwrap()
+                }
+                _ => panic!("invalid character in room name: {}", c),
+            })
+            .collect()
+    }
 }
 
 impl From<&str> for Room {
@@ -67,7 +90,7 @@ impl From<&str> for Room {
         let bracket1 = s.rfind('[').unwrap();
         let bracket2 = s.rfind(']').unwrap();
         Self {
-            name: s[..dash].to_string(),
+            encrypted_name: s[..dash].to_string(),
             sector_id: s[dash + 1..bracket1].parse().unwrap(),
             checksum: s[bracket1 + 1..bracket2].to_string(),
         }
@@ -84,23 +107,28 @@ fn test() {
     ]
     .map(|input| Room::from(input));
 
-    assert_eq!(rooms[0].name, "aaaaa-bbb-z-y-x");
+    assert_eq!(rooms[0].encrypted_name, "aaaaa-bbb-z-y-x");
     assert_eq!(rooms[0].sector_id, 123);
     assert_eq!(rooms[0].checksum, "abxyz");
     assert!(rooms[0].is_real());
 
-    assert_eq!(rooms[1].name, "a-b-c-d-e-f-g-h");
+    assert_eq!(rooms[1].encrypted_name, "a-b-c-d-e-f-g-h");
     assert_eq!(rooms[1].sector_id, 987);
     assert_eq!(rooms[1].checksum, "abcde");
     assert!(rooms[1].is_real());
 
-    assert_eq!(rooms[2].name, "not-a-real-room");
+    assert_eq!(rooms[2].encrypted_name, "not-a-real-room");
     assert_eq!(rooms[2].sector_id, 404);
     assert_eq!(rooms[2].checksum, "oarel");
     assert!(rooms[2].is_real());
 
-    assert_eq!(rooms[3].name, "totally-real-room");
+    assert_eq!(rooms[3].encrypted_name, "totally-real-room");
     assert_eq!(rooms[3].sector_id, 200);
     assert_eq!(rooms[3].checksum, "decoy");
     assert!(!rooms[3].is_real());
+
+    assert_eq!(
+        "very encrypted name",
+        Room::from("qzmt-zixmtkozy-ivhz-343[xxxxx]").name()
+    );
 }
