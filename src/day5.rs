@@ -1,12 +1,24 @@
-use crate::Part;
+use crate::Puzzle;
 
 use md5::{Digest, Md5};
 
-pub fn run(input: &str, part: Part) -> String {
-    let door_id = input.trim();
-    match part {
-        Part::One => bf_password1(door_id),
-        Part::Two => bf_password2(door_id),
+pub struct Solver {
+    door_id: String,
+}
+
+impl Puzzle for Solver {
+    fn new(input: &str) -> Self {
+        Self {
+            door_id: input.trim().to_string(),
+        }
+    }
+
+    fn part1(&self) -> String {
+        bf_password1(&self.door_id)
+    }
+
+    fn part2(&self) -> String {
+        bf_password2(&self.door_id)
     }
 }
 

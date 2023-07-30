@@ -1,10 +1,22 @@
-use crate::Part;
+use crate::Puzzle;
 
-pub fn run(input: &str, part: Part) -> String {
-    let input = parse_input(input);
-    match part {
-        Part::One => solve(&input, normal_keypad),
-        Part::Two => solve(&input, diamond_keypad),
+pub struct Solver {
+    input: Vec<Vec<Direction>>,
+}
+
+impl Puzzle for Solver {
+    fn new(input: &str) -> Self {
+        Self {
+            input: parse_input(input),
+        }
+    }
+
+    fn part1(&self) -> String {
+        solve(&self.input, normal_keypad)
+    }
+
+    fn part2(&self) -> String {
+        solve(&self.input, diamond_keypad)
     }
 }
 
@@ -117,6 +129,6 @@ fn parse_input(input: &str) -> Vec<Vec<Direction>> {
 #[test]
 fn test() {
     let test_input = "ULL\nRRDDD\nLURDL\nUUUUD\n";
-    assert_eq!("1985", run(test_input, Part::One));
-    assert_eq!("5DB3", run(test_input, Part::Two));
+    assert_eq!("1985", Solver::new(test_input).part1());
+    assert_eq!("5DB3", Solver::new(test_input).part2());
 }

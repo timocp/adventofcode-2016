@@ -1,16 +1,25 @@
 use std::collections::HashSet;
 
-use crate::Part;
+use crate::Puzzle;
 
-pub fn run(input: &str, part: Part) -> String {
-    let input = parse_input(input);
-    format!(
-        "{}",
-        match part {
-            Part::One => part1(&input),
-            Part::Two => part2(&input),
+pub struct Solver {
+    instructions: Vec<Instruction>,
+}
+
+impl Puzzle for Solver {
+    fn new(input: &str) -> Self {
+        Self {
+            instructions: parse_input(input),
         }
-    )
+    }
+
+    fn part1(&self) -> String {
+        part1(&self.instructions).to_string()
+    }
+
+    fn part2(&self) -> String {
+        part2(&self.instructions).to_string()
+    }
 }
 
 fn part1(input: &[Instruction]) -> u32 {

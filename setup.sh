@@ -25,17 +25,24 @@ fi
 
 echo "Creating $src..."
 cat > "$src" <<EOF
-use crate::Part;
+use crate::Puzzle;
 
-pub fn run(input: &str, part: Part) -> String {
-    // let input = parse_input(input);
-    format!(
-        "{}",
-        match part {
-            Part::One => "?",
-            Part::Two => "?",
-        }
-    )
+struct Solver {
+    // input: Vec<i32>
+}
+
+impl Puzzle for Solver {
+    fn new(input: &str) -> Self {
+        input: parse_input(input),
+    }
+
+    fn part1(&self) -> String {
+        "".to_string()
+    }
+
+    fn part2(&self) -> String {
+        "".to_string()
+    }
 }
 
 #[test]
