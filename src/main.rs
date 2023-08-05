@@ -6,6 +6,7 @@ mod day2;
 mod day3;
 mod day4;
 mod day5;
+mod day6;
 
 trait Puzzle {
     fn new(input: &str) -> Self;
@@ -44,11 +45,12 @@ fn run(day: usize) {
     let filename = format!("input/day{}.txt", day);
     if let Ok(input) = read_file(&filename) {
         match day {
-            1 => run!(1, day1::Solver, &input),
-            2 => run!(2, day2::Solver, &input),
-            3 => run!(3, day3::Solver, &input),
-            4 => run!(4, day4::Solver, &input),
-            5 => run!(5, day5::Solver, &input),
+            1 => run!(day, day1::Solver, &input),
+            2 => run!(day, day2::Solver, &input),
+            3 => run!(day, day3::Solver, &input),
+            4 => run!(day, day4::Solver, &input),
+            5 => run!(day, day5::Solver, &input),
+            6 => run!(day, day6::Solver, &input),
             _ => (),
         }
     }

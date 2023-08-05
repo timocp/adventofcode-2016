@@ -27,13 +27,15 @@ echo "Creating $src..."
 cat > "$src" <<EOF
 use crate::Puzzle;
 
-struct Solver {
+pub struct Solver {
     // input: Vec<i32>
 }
 
 impl Puzzle for Solver {
     fn new(input: &str) -> Self {
-        input: parse_input(input),
+        Self {
+            // input: parse_input(input),
+        }
     }
 
     fn part1(&self) -> String {
