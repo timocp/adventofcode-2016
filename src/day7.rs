@@ -5,12 +5,12 @@ pub struct Solver {
 }
 
 struct IPv7 {
-    address: String,
+    address: Vec<u8>,
 }
 
 impl From<&str> for IPv7 {
     fn from(s: &str) -> Self {
-        let address = s.to_string();
+        let address = s.as_bytes().to_vec();
         Self { address }
     }
 }
@@ -22,13 +22,13 @@ impl IPv7 {
         let mut is_abba = false;
         loop {
             if in_hypernet {
-                let end_hypernet = self.address[pos..].find(']').unwrap();
+                let end_hypernet = self.address[pos..].iter().position(|&b| b == b']').unwrap();
                 if has_abba(&self.address[pos..(pos + end_hypernet)]) {
                     return false;
                 }
                 pos += end_hypernet + 1;
             } else {
-                if let Some(start_hypernet) = self.address[pos..].find('[') {
+                if let Some(start_hypernet) = self.address[pos..].iter().position(|&b| b == b'[') {
                     if !is_abba && has_abba(&self.address[pos..(pos + start_hypernet)]) {
                         is_abba = true;
                     }
@@ -45,12 +45,10 @@ impl IPv7 {
     }
 }
 
-fn has_abba(part: &str) -> bool {
-    (0..part.len() - 3).map(|i| &part[i..i + 4]).any(|s| {
-        s.chars().nth(0) == s.chars().nth(3)
-            && s.chars().nth(1) == s.chars().nth(2)
-            && s.chars().nth(0) != s.chars().nth(1)
-    })
+fn has_abba(part: &[u8]) -> bool {
+    (0..part.len() - 3)
+        .map(|i| &part[i..i + 4])
+        .any(|s| s[0] == s[3] && s[1] == s[2] && s[0] != s[1])
 }
 
 impl Puzzle for Solver {
