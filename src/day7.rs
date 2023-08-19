@@ -6,74 +6,64 @@ pub struct Solver {
 
 struct IPv7 {
     address: Vec<u8>,
+    // boundary markers (start, end + 1) pairs of indexes into address
+    supernets: Vec<(usize, usize)>,
+    hypernets: Vec<(usize, usize)>,
 }
 
 impl From<&str> for IPv7 {
     fn from(s: &str) -> Self {
         let address = s.as_bytes().to_vec();
-        Self { address }
+
+        let mut in_hypernet = false;
+        let mut pos = 0;
+        let mut supernets = vec![];
+        let mut hypernets = vec![];
+
+        // detect boundaries of address parts
+        loop {
+            if in_hypernet {
+                let end_hypernet = address[pos..].iter().position(|&b| b == b']').unwrap();
+                hypernets.push((pos, pos + end_hypernet));
+                pos += end_hypernet + 1;
+            } else if let Some(start_hypernet) = address[pos..].iter().position(|&b| b == b'[') {
+                supernets.push((pos, pos + start_hypernet));
+                pos += start_hypernet + 1;
+            } else {
+                supernets.push((pos, address.len()));
+                break;
+            }
+            in_hypernet = !in_hypernet;
+        }
+
+        Self {
+            address,
+            supernets,
+            hypernets,
+        }
     }
 }
 
 impl IPv7 {
+    // Transport-layer snooping
+    // Any ABBA exists in supernet but none exist in hypernet
     fn supports_tls(&self) -> bool {
-        let mut in_hypernet = false;
-        let mut pos = 0;
-        let mut is_abba = false;
-        loop {
-            if in_hypernet {
-                let end_hypernet = self.address[pos..].iter().position(|&b| b == b']').unwrap();
-                if has_abba(&self.address[pos..(pos + end_hypernet)]) {
-                    return false;
-                }
-                pos += end_hypernet + 1;
-            } else {
-                if let Some(start_hypernet) = self.address[pos..].iter().position(|&b| b == b'[') {
-                    if !is_abba && has_abba(&self.address[pos..(pos + start_hypernet)]) {
-                        is_abba = true;
-                    }
-                    pos += start_hypernet + 1;
-                } else {
-                    if !is_abba && has_abba(&self.address[pos..]) {
-                        is_abba = true;
-                    }
-                    return is_abba;
-                }
-            }
-            in_hypernet = !in_hypernet;
-        }
+        self.supernets
+            .iter()
+            .any(|(start, end)| has_abba(&self.address[*start..*end]))
+            && !self
+                .hypernets
+                .iter()
+                .any(|(start, end)| has_abba(&self.address[*start..*end]))
     }
 
+    // Super-secret listening
+    // Any ABA exists in supernet and its inverse BAB exists in hypernet
     fn supports_ssl(&self) -> bool {
-        let mut in_hypernet = false;
-        let mut pos = 0;
-
-        // boundary markers are (start, end + 1)
-        let mut supernets = vec![];
-        let mut hypernets = vec![];
-
-        loop {
-            if in_hypernet {
-                let end_hypernet = self.address[pos..].iter().position(|&b| b == b']').unwrap();
-                hypernets.push((pos, pos + end_hypernet));
-                pos += end_hypernet + 1;
-            } else {
-                if let Some(start_hypernet) = self.address[pos..].iter().position(|&b| b == b'[') {
-                    supernets.push((pos, pos + start_hypernet));
-                    pos += start_hypernet + 1;
-                } else {
-                    supernets.push((pos, self.address.len()));
-                    break;
-                }
-            }
-            in_hypernet = !in_hypernet;
-        }
-
-        // for each ABA candidate in a supernet, see if its inverse exists in a hypernet
-        for (start, end) in supernets {
-            let abas = find_abas(&self.address[start..end]);
+        for (start, end) in self.supernets.iter() {
+            let abas = find_abas(&self.address[*start..*end]);
             for (a, b) in abas {
-                for (start, end) in hypernets.iter() {
+                for (start, end) in self.hypernets.iter() {
                     let part = &self.address[*start..*end];
                     if has_bab(part, a, b) {
                         return true;
@@ -107,7 +97,7 @@ fn has_bab(part: &[u8], a: u8, b: u8) -> bool {
 impl Puzzle for Solver {
     fn new(input: &str) -> Self {
         Self {
-            addresses: input.lines().map(|line| IPv7::from(line)).collect(),
+            addresses: input.lines().map(IPv7::from).collect(),
         }
     }
 
