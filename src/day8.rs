@@ -48,7 +48,7 @@ impl fmt::Display for Screen {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         for row in self.pixels.iter() {
             for pixel in row.iter() {
-                write!(f, "{}", if *pixel { '█' } else { '.' })?;
+                write!(f, "{}", if *pixel { '█' } else { ' ' })?;
             }
             writeln!(f)?;
         }
@@ -71,20 +71,24 @@ impl Puzzle for Solver {
     }
 
     fn part1(&self) -> String {
-        let mut screen = Screen::new();
-        for instruction in &self.input {
-            match instruction {
-                Instruction::Rect(width, height) => screen.light_rect(*width, *height),
-                Instruction::RotateColumn(col, by) => screen.rotate_column(*col, *by),
-                Instruction::RotateRow(row, by) => screen.rotate_row(*row, *by),
-            }
-        }
-        screen.count_lit().to_string()
+        process(&self.input).count_lit().to_string()
     }
 
     fn part2(&self) -> String {
-        "".to_string()
+        process(&self.input).to_string()
     }
+}
+
+fn process(instructions: &[Instruction]) -> Screen {
+    let mut screen = Screen::new();
+    for instruction in instructions {
+        match instruction {
+            Instruction::Rect(width, height) => screen.light_rect(*width, *height),
+            Instruction::RotateColumn(col, by) => screen.rotate_column(*col, *by),
+            Instruction::RotateRow(row, by) => screen.rotate_row(*row, *by),
+        }
+    }
+    screen
 }
 
 fn parse_input(input: &str) -> Vec<Instruction> {
