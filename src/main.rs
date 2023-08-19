@@ -75,6 +75,11 @@ where
         },
         t0.elapsed().as_secs_f64()
     );
+    if result.contains('\n') {
+        for line in result.lines().skip(1) {
+            println!("{:16}{}", "", line);
+        }
+    }
 }
 
 fn read_file(filename: &str) -> Result<String, std::io::Error> {
