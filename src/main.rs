@@ -8,6 +8,7 @@ mod day4;
 mod day5;
 mod day6;
 mod day7;
+mod day8;
 
 trait Puzzle {
     fn new(input: &str) -> Self;
@@ -53,6 +54,7 @@ fn run(day: usize) {
             5 => run!(day, day5::Solver, &input),
             6 => run!(day, day6::Solver, &input),
             7 => run!(day, day7::Solver, &input),
+            8 => run!(day, day8::Solver, &input),
             _ => (),
         }
     }
